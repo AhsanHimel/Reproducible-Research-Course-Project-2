@@ -44,18 +44,18 @@ There is also some documentation of the database available:
 
 ## Loading data
 
-```{r, cache = TRUE}
-file <- bzfile("repdata_data_StormData.csv.bz2")
+```{r, cache = T}
+# bz2file <- bzfile("repdata_data_StormData.csv.bz2")
+# if(!exists("storm")) {
+#   storm <- read.csv(bz2file, na.strings = c("NA"))
+# }
+
+storm <- data.table::fread(input = "repdata_data_StormData.csv.bz2")
 ```
 
-
-```{r, cache = TRUE}
-if(!exists("storm")) storm <- read.csv(file,
-                                       na.strings = c("NA", ""))
-```
 
 Loading required packages:
-```{r, cache = TRUE}
+```{r}
 library(tidyverse)
 ```
 
@@ -68,7 +68,7 @@ names(storm)
 
 
 ```{r}
-glimpse(storm)
+dplyr::glimpse(storm)
 ```
 
 ```{r}
@@ -107,7 +107,7 @@ There are missing values in `PROPDMGEXP` and `CROPDMGEXP` variables. For now we 
 
 ### Health Impact - Data Processing
 
-```{r}
+```{r, cache = T}
 df.injuries <- df %>% 
   select(EVTYPE, INJURIES) %>% 
   group_by(EVTYPE) %>% 
@@ -128,9 +128,6 @@ df.fatalities <- df %>%
   arrange(-total.fatalities)
 ```
 
-
-
-
 Top 10 events according to number of fatalities/deaths:
 ```{r}
 head(df.fatalities, 10)
@@ -139,6 +136,57 @@ head(df.fatalities, 10)
 
 
 ### Economic Impact - Data Processing
+
+According to [this](https://rpubs.com/gcctang1/271126/), the data provides two types of economic impact; Property damage (PROPDMG) and crop damage (CROPDMG). 
+
+The actual damage in $USD is indicated by PROPDMGEXP and CROPDMGEXP parameters. The index in the PROPDMGEXP and CROPDMGEXP can be interpreted as the following:-
+
+* H, h -> hundreds = x100  
+* K, K -> kilos = x1,000    
+* M, m -> millions = x1,000,000  
+* B,b -> billions = x1,000,000,000  
+* (+) -> x1  
+* (-) -> x0  
+* (?) -> x0  
+* blank -> x0  
+ 
+The total damage caused by each event type needs to be calculated manually - 
+
+```{r}
+df.damage <- df %>% select(EVTYPE,
+                           PROPDMG, PROPDMGEXP,
+                           CROPDMG, CROPDMGEXP) %>% 
+  group_by(EVTYPE)
+```
+
+```{r, cache = F}
+df.damage <- df %>% select(EVTYPE,
+                           PROPDMG, PROPDMGEXP,
+                           CROPDMG, CROPDMGEXP)
+Symbol <- sort(unique(df.damage$PROPDMGEXP))
+Multiplier <- c(0,0,0,1,10,10,10,10,10,10,10,10,10,10^9,10^2,10^2,10^3,10^6,10^6)
+convert.Multiplier <- data.frame(Symbol, Multiplier)
+
+df.damage.amount <- df.damage %>% 
+  mutate(Prop.Multiplier = Multiplier[match(df.damage$PROPDMGEXP,
+                                            convert.Multiplier$Symbol)],
+         Crop.Multiplier = Multiplier[match(df.damage$CROPDMGEXP,
+                                            convert.Multiplier$Symbol)],
+         PROPDMG.amount = PROPDMG*Prop.Multiplier,
+         CROPDMG.amount = CROPDMG*Crop.Multiplier,
+         Total.damage = PROPDMG.amount + CROPDMG.amount) %>%
+  group_by(EVTYPE) %>% 
+  summarize(TOTAL.DMG.EVTYPE = sum(Total.damage))%>%
+  arrange(-TOTAL.DMG.EVTYPE)
+```
+
+To 10 events according to amount of damage in USD:
+```{r}
+head(df.damage.amount, 10)
+```
+
+# Visulizations 
+
 
 
 
