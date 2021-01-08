@@ -4,6 +4,7 @@ author: 'MD AHSANUL ISLAM'
 date: "08/01/2021"
 output:
   html_document:
+    keep_md: yes
     toc: true
     toc_float: true
     toc_depth: 4
@@ -12,7 +13,6 @@ output:
     highlight: haddock
     # default, tango, pygments, kate, monochrome, espresso, zenburn, haddock, breezedark, and textmate
     code_download: true
-    
 ---
 
 ```{r, include=FALSE}
@@ -44,7 +44,7 @@ There is also some documentation of the database available:
 
 ## Loading data
 
-```{r, cache = True}
+```{r, cache = TRUE}
 file <- bzfile("repdata_data_StormData.csv.bz2")
 ```
 
