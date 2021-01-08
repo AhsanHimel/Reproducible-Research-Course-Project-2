@@ -20,6 +20,9 @@ output:
 
 # Synopsis
 
+The analysis on the storm event database revealed that tornadoes are the most dangerous weather event to the populations health as well as the economy. The next most dangerous event types are excessive heat, wind and flood. 
+
+After analyzing the impacts of different weather events reveals that tornado, high wind/cold, hurricane, winter storms caused billions of dollars in property damages in the years. 
 
 # Introduction
 
@@ -42,11 +45,6 @@ There is also some documentation of the database available:
 
 
 ```r
-> # bz2file <- bzfile("repdata_data_StormData.csv.bz2")
-> # if(!exists("storm")) {
-> #   storm <- read.csv(bz2file, na.strings = c("NA"))
-> # }
-> 
 > storm <- data.table::fread(input = "repdata_data_StormData.csv.bz2")
 ```
 
@@ -54,7 +52,8 @@ There is also some documentation of the database available:
 Loading required packages:
 
 ```r
-> library(tidyverse)
+> library(dplyr)
+> library(ggplot2)
 ```
 
 
@@ -296,7 +295,6 @@ The total damage caused by each event type needs to be calculated manually -
 > Symbol <- sort(unique(df.damage$PROPDMGEXP))
 > Multiplier <- c(0,0,0,1,10,10,10,10,10,10,10,10,10,10^9,10^2,10^2,10^3,10^6,10^6)
 > convert.Multiplier <- data.frame(Symbol, Multiplier)
-> 
 > df.damage.amount <- df.damage %>% 
 +   mutate(Prop.Multiplier = Multiplier[match(df.damage$PROPDMGEXP,
 +                                             convert.Multiplier$Symbol)],
@@ -334,8 +332,74 @@ To 10 events according to amount of damage in USD:
 
 # Visulizations 
 
+## Weather Events and Health
 
 
+```r
+> df.injuries[1:10,] %>% ggplot(aes(x = total.injuries,
++                                   y = reorder(EVTYPE, total.injuries))
++                                 ) +
++   geom_bar(stat = "identity", fill = "#d00000") +
++   scale_x_continuous(position = "top", breaks = seq(0, 90000, by = 10000),
++                      expand = c(0,0)) +
++   expand_limits(x = 100000) +
++   geom_text(aes(label = total.injuries), colour = "black", hjust = 0) +
++   labs(x = "Total Injuries", y = "Weather Event Type",
++        title = "Top 10 Events with Highest Total Injuries") +
++   theme(plot.title = element_text(colour = "#370617", size = 18,
++                                   face = "bold"),
++         panel.background = element_blank(),
++         panel.grid.major.x = element_line("grey"))
+```
+
+![](Assignment-2-storm-data_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+
+
+
+
+```r
+> df.fatalities[1:10,] %>% ggplot(aes(x = total.fatalities,
++                                     y = reorder(EVTYPE, total.fatalities))
++                                 ) +
++   geom_bar(stat = "identity", fill = "#6a040f") +
++   scale_x_continuous(position = "top", breaks = seq(0, 6000, by = 800),
++                      expand = c(0,0)) +
++   expand_limits(x = 6000) +
++   geom_text(aes(label = total.fatalities), colour = "black", hjust = 0) +
++   labs(x = "Total Fatalities", y = "Weather Event Type",
++        title = "Top 10 Events with Highest Total Fatalities") +
++   theme(plot.title = element_text(colour = "#370617", size = 18,
++                                   face = "bold"),
++         panel.background = element_blank(),
++         panel.grid.major.x = element_line("grey"))
+```
+
+![](Assignment-2-storm-data_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+
+
+## Weather Events and economy 
+
+
+```r
+> df.damage.amount[1:5,] %>% ggplot(aes(x = TOTAL.DMG.EVTYPE,
++                                     y = reorder(EVTYPE, TOTAL.DMG.EVTYPE))
++                                 ) +
++   geom_bar(stat = "identity", fill = "#6a040f") +
++   scale_x_continuous(position = "top",
++                      expand = c(0,0)) +
++   expand_limits(x = 2500000000) +
++   geom_text(aes(label = sprintf("$ %0.2f", TOTAL.DMG.EVTYPE)), 
++             colour = "black", hjust = 0) +
++   labs(x = "Total amount of damage", y = "Weather Event Type",
++        title = "Top 5 Events with Highest\nDemage in Economy") +
++   theme(plot.title = element_text(colour = "#9d0208", size = 18, face = "bold",
++                                   hjust = 0.5),
++         panel.background = element_blank(),
++         panel.grid.major.x = element_line("grey"),
++         axis.text.x = element_blank())
+```
+
+![](Assignment-2-storm-data_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 
 
 
