@@ -159,14 +159,13 @@ df.damage <- df %>% select(EVTYPE,
   group_by(EVTYPE)
 ```
 
-```{r, cache = F}
+```{r, cache = T}
 df.damage <- df %>% select(EVTYPE,
                            PROPDMG, PROPDMGEXP,
                            CROPDMG, CROPDMGEXP)
 Symbol <- sort(unique(df.damage$PROPDMGEXP))
 Multiplier <- c(0,0,0,1,10,10,10,10,10,10,10,10,10,10^9,10^2,10^2,10^3,10^6,10^6)
 convert.Multiplier <- data.frame(Symbol, Multiplier)
-
 df.damage.amount <- df.damage %>% 
   mutate(Prop.Multiplier = Multiplier[match(df.damage$PROPDMGEXP,
                                             convert.Multiplier$Symbol)],
@@ -187,8 +186,50 @@ head(df.damage.amount, 10)
 
 # Visulizations 
 
+## Weather Events and Health
+
+```{r}
+df.injuries[1:10,] %>% ggplot(aes(x = total.injuries,
+                                  y = reorder(EVTYPE, total.injuries))
+                                ) +
+  geom_bar(stat = "identity", fill = "#d00000") +
+  scale_x_continuous(position = "top", breaks = seq(0, 90000, by = 10000),
+                     expand = c(0,0)) +
+  expand_limits(x = 100000) +
+  geom_text(aes(label = total.injuries), colour = "black", hjust = 0) +
+  labs(x = "Total Fatalities", y = "Weather Event Type",
+       title = "Top 10 Events with Highest Total Injuries") +
+  theme(plot.title = element_text(colour = "#370617", size = 18,
+                                  face = "bold"),
+        panel.background = element_blank(),
+        panel.grid.major.x = element_line("grey"))
+```
 
 
+
+```{r}
+df.fatalities[1:10,] %>% ggplot(aes(x = total.fatalities,
+                                    y = reorder(EVTYPE, total.fatalities))
+                                ) +
+  geom_bar(stat = "identity", fill = "#6a040f") +
+  scale_x_continuous(position = "top", breaks = seq(0, 6000, by = 800),
+                     expand = c(0,0)) +
+  expand_limits(x = 6000) +
+  geom_text(aes(label = total.fatalities), colour = "black", hjust = 0) +
+  labs(x = "Total Fatalities", y = "Weather Event Type",
+       title = "Top 10 Events with Highest Total Fatalities") +
+  theme(plot.title = element_text(colour = "#370617", size = 18,
+                                  face = "bold"),
+        panel.background = element_blank(),
+        panel.grid.major.x = element_line("grey"))
+```
+
+
+## Weather events and economy 
+
+```{r}
+
+```
 
 
 
